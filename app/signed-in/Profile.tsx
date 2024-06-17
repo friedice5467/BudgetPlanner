@@ -41,7 +41,7 @@ function Profile() {
 
   return (
     <View style={styles.container}>
-      <Hero height={60} style={{backgroundColor: theme.colors.primary}} />
+      <Hero height={60}/>
       <View style={[styles.content, styles.profile]}>
         {user.photoURL ? (
           <Avatar.Image size={80} source={{uri: user.photoURL}} />

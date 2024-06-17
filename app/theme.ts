@@ -33,14 +33,7 @@ export const darkTheme = {
     tertiary: tertiaryColor,
     background: darkBackgroundColor,
     surface: darkSurfaceColor,
-    text: '#FFFFFF',
     error: errorColor,
-    onBackground: '#FFFFFF',
-    onSurface: '#FFFFFF',
-    onPrimary: '#FFFFFF',
-    onSecondary: '#FFFFFF',
-    onTertiary: '#000000',
-    onError: '#FFFFFF',
   },
 };
 
@@ -56,14 +49,7 @@ export const defaultTheme = {
     tertiary: tertiaryColor,
     background: lightBackgroundColor,
     surface: lightSurfaceColor,
-    text: '#000000',
     error: errorColor,
-    onBackground: '#000000',
-    onSurface: '#000000',
-    onPrimary: '#FFFFFF',
-    onSecondary: '#FFFFFF',
-    onTertiary: '#000000',
-    onError: '#FFFFFF',
   },
 };
 

@@ -25,7 +25,8 @@ function SignIn() {
         <View style={[styles.center, {paddingBottom: 10}]}>
         <Button
         icon={'lock-reset'}
-          buttonColor={theme.colors.secondary}
+        textColor={theme.colors.onSecondaryContainer}
+        buttonColor={theme.colors.secondary}
           onPress={() => {
             linkTo('/account/password/forgot');
           }}
@@ -35,7 +36,7 @@ function SignIn() {
         <Button
           mode="contained"
           icon="plus"
-          textColor={theme.colors.secondary}
+          textColor={theme.colors.onPrimaryContainer}
           onPress={() => {
             linkTo('/account/create');
           }}

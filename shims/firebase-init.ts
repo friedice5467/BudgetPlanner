@@ -2,13 +2,13 @@
 import firebase from 'firebase/compat/app';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDSgSL8xfnnqgMRVJ0MZuNuF5ZCtbHHyjQ",
-  authDomain: "aireciperrecommender.firebaseapp.com",
-  projectId: "aireciperrecommender",
-  storageBucket: "aireciperrecommender.appspot.com",
-  messagingSenderId: "865020791077",
-  appId: "1:865020791077:web:d8c3bfa0a7ae5cc516b2cc",
-  measurementId: "G-2XJ9HTSWFK"
+  apiKey: "AIzaSyDggVXgkiX9winfn3JwLMUyd2qGVXPy8n0",
+  authDomain: "budgetplanner-9f6f2.firebaseapp.com",
+  projectId: "budgetplanner-9f6f2",
+  storageBucket: "budgetplanner-9f6f2.appspot.com",
+  messagingSenderId: "699938425719",
+  appId: "1:699938425719:web:68236dfed6459927536f72",
+  measurementId: "G-0RCBCVH6D2"
 };
 
 const initializeApp = (): void => {

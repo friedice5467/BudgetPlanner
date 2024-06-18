@@ -19,7 +19,7 @@ function Home() {
   return (
     <View
       style={[styles.container, {backgroundColor: theme.colors.background}]}>
-      <Text>Helo World</Text>
+      <Text>Hello World</Text>
     </View>
   );
 }

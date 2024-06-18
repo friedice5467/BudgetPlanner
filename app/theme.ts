@@ -7,19 +7,19 @@ import {
   DefaultTheme as NavigationDefaultTheme,
 } from '@react-navigation/native';
 
-// Common colors
-const primaryColor = '#5fad56'; 
-const secondaryColor = '#2D3047';  
-const tertiaryColor = '#FFDDC1';  
-const errorColor = '#FE4A49';  
+// Base colors
+const primaryColor = '#4CAF50';  // A crisp green, good for actions
+const secondaryColor = '#304FFE';  // A deep indigo, great for highlighting
+const tertiaryColor = '#FFC107';  // A bright amber for accents
+const errorColor = '#F44336';  // A bright red, suitable for errors
 
 // Light Theme Colors
-const lightBackgroundColor = '#F7FFF7';  
-const lightSurfaceColor = '#FFDDC1';  
+const lightBackgroundColor = '#FFFFFF';  // Pure white for a clean look
+const lightSurfaceColor = '#F4F7FA';
 
 // Dark Theme Colors
-const darkBackgroundColor = '#1C1C1E';  
-const darkSurfaceColor = '#38393A';  
+const darkBackgroundColor = '#121212';  // Very dark grey, almost black for deep dark mode
+const darkSurfaceColor = '#242424';  // A slightly lighter grey than background for depth
 
 // Dark Theme
 export const darkTheme = {
@@ -29,15 +29,18 @@ export const darkTheme = {
     ...PaperDarkTheme.colors,
     ...NavigationDarkTheme.colors,
     primary: primaryColor,
-    secondary: secondaryColor,
-    tertiary: tertiaryColor,
+    accent: secondaryColor, // Renamed to match convention
     background: darkBackgroundColor,
     surface: darkSurfaceColor,
     error: errorColor,
+    text: '#FFFFFF', // Ensuring text is always readable
+    onBackground: '#E0E0E0', // Slightly off-white for less harsh contrast
+    onSurface: '#E0E0E0', // Similar to onBackground for consistency
+    notification: tertiaryColor, // For notifications, using tertiary color
   },
 };
 
-// Default Theme
+// Default (Light) Theme
 export const defaultTheme = {
   ...PaperDefaultTheme,
   ...NavigationDefaultTheme,
@@ -45,11 +48,14 @@ export const defaultTheme = {
     ...PaperDefaultTheme.colors,
     ...NavigationDefaultTheme.colors,
     primary: primaryColor,
-    secondary: secondaryColor,
-    tertiary: tertiaryColor,
+    accent: secondaryColor,
     background: lightBackgroundColor,
     surface: lightSurfaceColor,
     error: errorColor,
+    text: '#333333', // Dark grey for soft contrast
+    onBackground: '#666666', // Medium grey for icons and secondary text
+    onSurface: '#666666',
+    notification: tertiaryColor,
   },
 };
 

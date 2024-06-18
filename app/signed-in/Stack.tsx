@@ -8,6 +8,7 @@ import Home from './Home';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { HomeStackParamList, ProfileStackParamList } from '../models/navigation';
+import { useTheme } from 'react-native-paper';
 
 const TopStack = createStackNavigator<HomeStackParamList>();
 const BottomStack = createStackNavigator<ProfileStackParamList>();
@@ -34,6 +35,7 @@ const ProfileStack: React.FC = () => {
 
 const SignedIn = () => {
   const appSettings = useAppSettings();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -50,7 +52,7 @@ const SignedIn = () => {
           }
           return <Icon name={iconName ?? ''} size={size} color={color} />;
         },
-        tabBarStyle: {paddingBottom: 3},
+        tabBarStyle: {paddingBottom: 3, backgroundColor: theme.colors.surface},
         headerShown: false,
       })}>
       <BottomTab.Screen

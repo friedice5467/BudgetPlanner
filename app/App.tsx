@@ -4,6 +4,8 @@ import {
   useTheme,
   Headline,
   Provider as PaperProvider,
+  Portal,
+  Modal,
 } from 'react-native-paper';
 import {
   SafeAreaProvider,
@@ -14,8 +16,9 @@ import {AlertsProvider} from 'react-native-paper-alerts';
 import Orientation from 'react-native-orientation-locker';
 
 import {useAuthState} from './contexts/AuthContext';
+import {ModalProvider} from './contexts/ModalContext';
 import SignedInStack from './signed-in/Stack';
-import { IntroScreen } from './signed-in/IntroScreen';
+import {IntroScreen} from './signed-in/IntroScreen';
 import SignedOutStack from './signed-out/Stack';
 import appJson from '../app.json';
 import {useAppSettings} from './components/AppSettings';
@@ -64,6 +67,7 @@ export default function App() {
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <PaperProvider theme={appSettings.currentTheme}>
         <AlertsProvider>
+          <ModalProvider>
             <NavigationContainer
               linking={{
                 prefixes: ['localhost'],
@@ -89,6 +93,7 @@ export default function App() {
               theme={appSettings.currentTheme}>
               {renderContent()}
             </NavigationContainer>
+          </ModalProvider>
         </AlertsProvider>
       </PaperProvider>
     </SafeAreaProvider>

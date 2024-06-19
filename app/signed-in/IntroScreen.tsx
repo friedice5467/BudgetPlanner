@@ -17,6 +17,8 @@ import {useAlerts} from 'react-native-paper-alerts';
 import UserService from '../services/UserService';
 import BudgetService from '../services/BudgetService';
 import { useOpenPercentageSlider } from '../components/PercentageSliderModal';
+import { useThemeBasedConstants } from '../util/consts';
+
 export const IntroScreen = ({
   onProfileUpdate,
 }: {
@@ -33,13 +35,7 @@ export const IntroScreen = ({
     want: 30,
     save: 20,
   });
-
-  const colorMap: Record<string, string> = {
-    need: theme.colors.error,
-    want: theme.colors.tertiary,
-    save: theme.colors.primary,
-  };
-
+  const constants = useThemeBasedConstants();
   const [isLoading, setIsLoading] = useState(false);
 
   const adjustSliders = useCallback((name: string, value: number) => {
@@ -207,7 +203,7 @@ export const IntroScreen = ({
               key[0].toUpperCase() + key.slice(1),
               percentages[key],
               value => adjustSliders(key, value),
-              colorMap[key],
+              constants.colorMap[key],
             ),
           )}
           {isLoading ? (

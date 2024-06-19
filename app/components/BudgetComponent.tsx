@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
-import { useTheme, Text, Button, IconButton, Card } from 'react-native-paper';
+import { useTheme, Text, Button, IconButton, Card, List } from 'react-native-paper';
 import MonthPicker from 'react-native-month-year-picker';
 import { format, addMonths, subMonths } from 'date-fns';
 
@@ -15,8 +15,10 @@ export const BudgetComponent = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthlyBudget, setMonthlyBudget] = useState<MonthlyBudget | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const consts = useThemeBasedConstants();
+    const budgetMap = consts.budgetMap;
+    const colorMap = consts.colorMap;
   const user = useContext(UserContext).user as AppUser;
-  const { colorMap, budgetMap } = useThemeBasedConstants();
   const netMonthlyIncome = user.netMonthlyIncome;
 
   useEffect(() => {
@@ -28,13 +30,19 @@ export const BudgetComponent = () => {
         allocations: [],
       });
     }
-
     fetchBudget();
   }, [selectedDate, user.uid, user.budgetId]);
 
+  const onValueChange = (event: any, newDate: Date) => {
+    const date = newDate || selectedDate;
+    setIsPickerOpen(false);
+    setSelectedDate(date);
+  };
+  
+
+  
   const getBudgetType = (type: string) => {
     if(!monthlyBudget) return 0;
-
     if(budgetMap[type] === 'Needs') {
         return monthlyBudget.needPercentage;
     }
@@ -45,12 +53,6 @@ export const BudgetComponent = () => {
         return monthlyBudget.savePercentage;
     }
   }
-
-  const onValueChange = useCallback((event: any, newDate: Date) => {
-    const date = newDate || selectedDate;
-    setIsPickerOpen(false);
-    setSelectedDate(date);
-  }, [selectedDate]);
 
   return (
     <View style={styles.container}>
@@ -72,18 +74,25 @@ export const BudgetComponent = () => {
 
       <ScrollView style={styles.contentArea}>
         {monthlyBudget && (
-          ['need', 'want', 'save'].map((type) => (
-            <Card key={type} style={[styles.budgetCategory, { borderColor: colorMap[type] }]}>
-              <Card.Title title={`${budgetMap[type]}: $${(netMonthlyIncome * getBudgetType(type) / 100).toFixed(2)}`} titleStyle={{ color: colorMap[type] }} />
-              <Card.Content>
+          ['need', 'want', 'save'].map((type, index) => (
+            <Card key={index} style={styles.budgetCategory}>
+              <List.Accordion
+                title={`${type.toUpperCase()} - $${(netMonthlyIncome * getBudgetType(type) / 100).toFixed(2)} Available`}
+                left={props => <List.Icon {...props} icon="folder" color={colorMap[type]} />}
+                titleStyle={{ color: colorMap[type] }}
+              >
                 {monthlyBudget.allocations.filter(alloc => alloc.type === type).map((alloc: Allocation) => (
-                  <Text key={alloc.allocationId} style={styles.allocationText}>
-                    {alloc.description}: ${alloc.amount.toFixed(2)}
-                  </Text>
+                  <List.Item
+                    key={alloc.allocationId}
+                    title={alloc.description}
+                    description={`Funded: $${alloc.amount.toFixed(2)}`}
+                    left={props => <List.Icon {...props} icon="label-outline" />}
+                  />
                 ))}
-                <Button icon="plus" mode="contained" color={colorMap[type]}
-                  onPress={() => console.log('Add allocation for', type)}>Add {type}</Button>
-              </Card.Content>
+                <Button mode="contained" icon="plus" onPress={() => console.log('Add allocation')}>
+                  Add {type}
+                </Button>
+              </List.Accordion>
             </Card>
           ))
         )}
@@ -112,16 +121,6 @@ const styles = StyleSheet.create({
   },
   budgetCategory: {
     marginBottom: 20,
-    borderWidth: 1,
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  allocationText: {
-    fontSize: 16,
-    marginVertical: 5,
+    elevation: 4,
   },
 });

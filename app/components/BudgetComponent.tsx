@@ -21,6 +21,7 @@ export const BudgetComponent = () => {
 
   const budgetMap = consts.budgetMap;
   const colorMap = consts.colorMap;
+  const iconMap = consts.iconMap;
 
   useEffect(() => {
     async function fetchBudget() {
@@ -55,7 +56,7 @@ export const BudgetComponent = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.dateNavContainer, {backgroundColor:theme.colors.surface}]}>
+      <View style={[styles.dateNavContainer, {backgroundColor:theme.colors.surface, borderBottomColor:'#E8EBEE', borderBottomWidth: 1}]}>
         <IconButton icon="chevron-left" onPress={() => setSelectedDate(subMonths(selectedDate, 1))} iconColor={theme.colors.onPrimaryContainer} size={30} />
         <TouchableOpacity onPress={() => setIsPickerOpen(true)}>
           <Text style={styles.dateDisplay}>{format(selectedDate, 'MMMM yyyy')}</Text>
@@ -74,14 +75,13 @@ export const BudgetComponent = () => {
       <ScrollView style={styles.contentArea}>
         {monthlyBudget && (
           ['need', 'want', 'save'].map((type, index) => (
-            <Card key={index} style={[styles.budgetCategory, { borderColor: consts.colorMap[type], backgroundColor: theme.colors.surface }]}>
+            <Card key={index} style={[styles.budgetCategory, { borderColor: colorMap[type], backgroundColor: theme.colors.background }]}>
               <List.Accordion
-                title={`${consts.budgetMap[type]} - $${(netMonthlyIncome *getBudgetType(type) / 100).toFixed(2)} Available`}
-                left={props => <List.Icon {...props} icon="folder" color={consts.colorMap[type]} />}
-                titleStyle={{ color: consts.colorMap[type], fontWeight: '700' }}
+                title={`${consts.budgetMap[type]} - $${(netMonthlyIncome *getBudgetType(type) / 100).toFixed(2)}`}
+                left={props => <List.Icon {...props} icon={iconMap[type]} color={colorMap[type]} />}
+                titleStyle={{ color:  theme.colors.onBackground, fontWeight: '700' }}
                 style={styles.accordion}
               >
-                <Divider />
                 {monthlyBudget.allocations.filter(alloc => alloc.type === type).map((alloc: Allocation) => (
                   <List.Item
                     key={alloc.allocationId}
@@ -90,7 +90,7 @@ export const BudgetComponent = () => {
                     left={props => <List.Icon {...props} icon="label-outline" />}
                   />
                 ))}
-                <Button icon="plus" mode="contained" onPress={() => console.log('Add allocation')} color={consts.colorMap[type]}>
+                <Button icon="plus" mode="text" onPress={() => console.log('Add allocation')} textColor={theme.colors.onBackground} style={{borderColor: colorMap[type], borderWidth: 1, borderTopWidth: 0, borderRadius: 0, borderBottomEndRadius: 10, borderBottomStartRadius: 10}}>
                   Add {type}
                 </Button>
               </List.Accordion>

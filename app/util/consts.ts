@@ -9,11 +9,23 @@ export const useThemeBasedConstants = () => {
     save: theme.colors.primary,
   };
 
+  const colorTextMap : Record<string, string> = {
+    need: theme.colors.onErrorContainer,
+    want: theme.colors.onTertiaryContainer,
+    save: theme.colors.onPrimaryContainer,
+  };
+
+  const iconMap : Record<string, string> = {
+    need: 'alert-circle',
+    want: 'cart',
+    save: 'piggy-bank',
+  }
+
   const budgetMap: Record<string, string> = {
     need: 'Needs',
     want: 'Wants',
     save: 'Savings',
   };
 
-  return { colorMap, budgetMap };
+  return { colorMap, colorTextMap, iconMap, budgetMap };
 };

@@ -36,6 +36,6 @@ export const useAppSettings = (): AppSettings => {
     languageLocale,
     t: (key: string, config?: any) => i18n.t(key, config),
     colorScheme: colorScheme ?? 'light',
-    currentTheme: colorScheme === 'light' ? defaultTheme : darkTheme,
+    currentTheme: colorScheme === 'light' ? defaultTheme : defaultTheme,
   };
 };

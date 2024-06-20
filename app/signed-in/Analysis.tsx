@@ -1,18 +1,16 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useTheme} from 'react-native-paper';
+import {useTheme, Text} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {HomeScreenNavigationProp} from '../models/navigation';
-import {BudgetComponent} from '../components/BudgetComponent';
 
-function Home() {
+function Analysis() {
   const theme = useTheme();
-  const navigation = useNavigation<HomeScreenNavigationProp>();
 
   return (
     <View
       style={[styles.container, {backgroundColor: theme.colors.background}]}>
-      <BudgetComponent/>
+      <Text>Analysis</Text>
     </View>
   );
 }
@@ -23,4 +21,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default Analysis;

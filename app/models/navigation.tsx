@@ -5,6 +5,7 @@ import {NavigatorScreenParams} from '@react-navigation/native';
 
 export type HomeStackParamList = {
   HomeScreen: undefined;
+  AnalysisScreen: undefined;
   //add more here
 };
 export type ProfileStackParamList = {

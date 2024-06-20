@@ -29,7 +29,7 @@ export const darkTheme = {
     ...PaperDarkTheme.colors,
     ...NavigationDarkTheme.colors,
     primary: primaryColor,
-    accent: secondaryColor, // Renamed to match convention
+    accent: secondaryColor, 
     background: darkBackgroundColor,
     surface: darkSurfaceColor,
     error: errorColor,

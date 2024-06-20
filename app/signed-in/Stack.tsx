@@ -5,6 +5,7 @@ import {NotFound} from '../components/NotFound';
 import Profile from './Profile';
 import Settings from './Settings';
 import Home from './Home';
+import Analysis from './Analysis';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { HomeStackParamList, ProfileStackParamList } from '../models/navigation';
@@ -21,6 +22,14 @@ const HomeStack: React.FC = () => {
     </TopStack.Navigator>
   );
 };
+
+const AnalysisStack: React.FC = () => {
+  return (
+    <TopStack.Navigator initialRouteName="AnalysisScreen">
+      <TopStack.Screen name="AnalysisScreen" component={Analysis} options={{headerShown: false}} />
+    </TopStack.Navigator>
+  );
+}
 
 const ProfileStack: React.FC = () => {
   const appSettings = useAppSettings();
@@ -40,15 +49,18 @@ const SignedIn = () => {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="Home"
+      initialRouteName="Budget"
       safeAreaInsets={insets}
       screenOptions={({route}) => ({
         tabBarIcon: ({color, size}) => {
           let iconName;
-          if (route.name === 'Home') {
-            iconName = 'home';
+          if (route.name === 'Budget') {
+            iconName = 'wallet';
           } else if (route.name === 'User') {
             iconName = 'account';
+          }
+          else if(route.name === 'Analysis'){
+            iconName = 'chart-bar';
           }
           return <Icon name={iconName ?? ''} size={size} color={color} />;
         },
@@ -56,8 +68,12 @@ const SignedIn = () => {
         headerShown: false,
       })}>
       <BottomTab.Screen
-  name="Home"
+  name="Budget"
   component={HomeStack}
+/>
+<BottomTab.Screen
+  name="Analysis"
+  component={AnalysisStack}
 />
 <BottomTab.Screen
   name="User"

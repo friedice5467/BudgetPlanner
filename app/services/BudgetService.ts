@@ -1,6 +1,6 @@
 import firestore from '../../shims/firebase-firestore-web';
 import { Transaction } from '@firebase/firestore-types';
-import { BaseBudget, MonthlyBudget, Allocation } from '../models/budget/budget';
+import { BaseBudget, MonthlyBudget, Allocation, BaseAllocation } from '../models/budget/budget';
 
 class BudgetService {
   private budgetsCollection = firestore().collection('budgets');
@@ -9,14 +9,16 @@ class BudgetService {
     if (!this.validatePercentages(budget.needPercentage, budget.wantPercentage, budget.savePercentage)) {
       throw new Error('Invalid budget percentages');
     }
-
+    //firebase uuid
+    const budgetId = this.budgetsCollection.doc().id;
+    console.log(`budgetId: ${budgetId}`)
     const baseBudget: BaseBudget = {
       ...budget,
-      budgetId: this.budgetsCollection.doc().id,
+      budgetId: budgetId
     };
 
-    await this.budgetsCollection.doc(baseBudget.budgetId).set(baseBudget);
-    return baseBudget.budgetId || '';
+    await this.budgetsCollection.doc(budgetId).set(baseBudget);
+    return baseBudget.budgetId as string;
   }
 
   async getBaseBudget(budgetId: string): Promise<BaseBudget> {
@@ -58,6 +60,10 @@ class BudgetService {
       throw new Error('Monthly budget not found');
     }
     return monthlyBudgetDoc.data() as MonthlyBudget;
+  }
+
+  async createBaseAllocations(userId: string, monthYear: string, allocations: BaseAllocation[]) {
+    
   }
 
   async addAllocation(userId: string, monthYear: string, allocation: Allocation) {

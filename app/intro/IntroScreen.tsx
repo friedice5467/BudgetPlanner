@@ -96,6 +96,8 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
           budgetId: '',
         };
         setIsLoading(false);
+        setUser(newUser);
+        setBaseBudget(baseBudget as BaseBudget);
         navigateToAllocation();
       }
     } catch (error: any) {
@@ -216,9 +218,10 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
           ) : (
             <Button
               icon={'arrow-right'}
-              textColor={theme.colors.onPrimaryContainer}
+              textColor={theme.colors.onPrimary}
               mode="contained"
               onPress={handleSubmit}
+              loading={isLoading}
               style={styles.button}
               labelStyle={{fontSize: 18}}>
               Next

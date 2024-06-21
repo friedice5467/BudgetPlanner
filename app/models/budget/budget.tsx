@@ -8,13 +8,20 @@ export interface BaseBudget {
 }
 
 export interface MonthlyBudget extends BaseBudget {
-  monthYear: string; // e.g., '2023-06'
+  monthYear: string; // e.g., '06-2023'
   allocations: Allocation[];
+}
+
+export enum BudgetType {
+    NEED = 'need',
+    WANT = 'want',
+    SAVE = 'save',
+    
 }
 
 export interface BaseAllocation {
     allocationId: string;
-    type: 'need' | 'want' | 'save';
+    type: BudgetType;
     description: string;
     amount: number;
     isStatic: boolean;  

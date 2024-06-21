@@ -3,6 +3,8 @@ import { Portal, Modal,Text } from 'react-native-paper';
 interface ModalContextType {
   showModal: (content: ReactNode) => void;
   hideModal: () => void;
+  modalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -22,7 +24,7 @@ export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ModalContext.Provider value={{ showModal, hideModal }}>
+    <ModalContext.Provider value={{ showModal, hideModal, modalVisible, setModalVisible }}>
       {children}
       <Portal>
         <Modal visible={modalVisible} onDismiss={hideModal}>

@@ -4,6 +4,7 @@ export interface BaseBudget {
   needPercentage: number;
   wantPercentage: number;
   savePercentage: number;
+  baseAllocations: BaseAllocation[];
 }
 
 export interface MonthlyBudget extends BaseBudget {
@@ -11,9 +12,15 @@ export interface MonthlyBudget extends BaseBudget {
   allocations: Allocation[];
 }
 
-export interface Allocation {
-  allocationId: string;
-  type: 'need' | 'want' | 'save';
-  description: string;
-  amount: number;
-}
+export interface BaseAllocation {
+    allocationId: string;
+    type: 'need' | 'want' | 'save';
+    description: string;
+    amount: number;
+    isStatic: boolean;  
+  }
+  
+  export interface Allocation extends BaseAllocation {
+
+  }
+  

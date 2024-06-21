@@ -18,7 +18,7 @@ import Orientation from 'react-native-orientation-locker';
 import {useAuthState} from './contexts/AuthContext';
 import {ModalProvider} from './contexts/ModalContext';
 import SignedInStack from './signed-in/Stack';
-import {IntroScreen} from './signed-in/IntroScreen';
+import IntroNavigator from './intro/Stack';
 import SignedOutStack from './signed-out/Stack';
 import appJson from '../app.json';
 import {useAppSettings} from './components/AppSettings';
@@ -58,7 +58,7 @@ export default function App() {
       return <SignedOutStack />;
     }
     if (introNeeded) {
-      return <IntroScreen onProfileUpdate={handleProfileUpdate} />;
+      return <IntroNavigator onProfileUpdate={handleProfileUpdate} />;
     }
     return <SignedInStack />;
   };

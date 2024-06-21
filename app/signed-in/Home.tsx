@@ -12,7 +12,7 @@ function Home() {
   return (
     <View
       style={[styles.container, {backgroundColor: theme.colors.background}]}>
-      <BudgetComponent/>
+      <BudgetComponent isIntro={false} baseBudget={undefined} newUser={undefined} onProfileUpdate={undefined}/>
     </View>
   );
 }

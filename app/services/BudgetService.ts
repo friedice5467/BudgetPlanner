@@ -5,23 +5,18 @@ import { BaseBudget, MonthlyBudget, Allocation } from '../models/budget/budget';
 class BudgetService {
   private budgetsCollection = firestore().collection('budgets');
 
-  async createBaseBudget(budget: Omit<BaseBudget, "budgetId">) : Promise<string> {
+  async createBaseBudget(budget: Omit<BaseBudget, 'budgetId'>): Promise<string> {
     if (!this.validatePercentages(budget.needPercentage, budget.wantPercentage, budget.savePercentage)) {
       throw new Error('Invalid budget percentages');
     }
 
-    const budgetRef = this.budgetsCollection.doc();
-
     const baseBudget: BaseBudget = {
-      budgetId: budgetRef.id,
-      userId: budget.userId,
-      needPercentage: budget.needPercentage,
-      wantPercentage: budget.wantPercentage,
-      savePercentage: budget.savePercentage,
+      ...budget,
+      budgetId: this.budgetsCollection.doc().id,
     };
 
     await this.budgetsCollection.doc(baseBudget.budgetId).set(baseBudget);
-    return baseBudget.budgetId as string;
+    return baseBudget.budgetId || '';
   }
 
   async getBaseBudget(budgetId: string): Promise<BaseBudget> {
@@ -32,21 +27,21 @@ class BudgetService {
     return budgetDoc.data() as BaseBudget;
   }
 
-  async createMonthlyBudget(userId: string, monthYear: string) {
-    const budgetDoc = await this.budgetsCollection.doc(userId).get();
-    if (!budgetDoc.exists) {
+  async createMonthlyBudget(baseBudgetId: string, monthYear: string): Promise<void> {
+    const baseBudgetDoc = await this.budgetsCollection.doc(baseBudgetId).get();
+    if (!baseBudgetDoc.exists) {
       throw new Error('Base budget not found');
     }
 
-    const baseBudget = budgetDoc.data() as BaseBudget;
+    const baseBudget = baseBudgetDoc.data() as BaseBudget;
     const monthlyBudget: MonthlyBudget = {
       ...baseBudget,
       monthYear,
-      allocations: []
+      allocations: baseBudget.baseAllocations  
     };
 
     await this.budgetsCollection
-      .doc(userId)
+      .doc(baseBudget.userId)
       .collection('monthlyBudgets')
       .doc(monthYear)
       .set(monthlyBudget);

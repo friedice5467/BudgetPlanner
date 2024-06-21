@@ -14,16 +14,13 @@ import {AppUser} from '../models/appUser';
 import {BaseBudget} from '../models/budget/budget';
 import auth from '@react-native-firebase/auth';
 import {useAlerts} from 'react-native-paper-alerts';
-import UserService from '../services/UserService';
-import BudgetService from '../services/BudgetService';
 import { useOpenPercentageSlider } from '../components/PercentageSliderModal';
 import { useThemeBasedConstants } from '../util/consts';
+import { IntroScreenProps } from '../models/navigation';
+import { useProfile } from '../contexts/NewUserContext';
 
-export const IntroScreen = ({
-  onProfileUpdate,
-}: {
-  onProfileUpdate: (user: AppUser) => void;
-}) => {
+export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
+  const { setUser, setBaseBudget, onProfileUpdate } = useProfile();
   const theme = useTheme();
   const alerts = useAlerts();
   const [netMonthlyIncome, setNetMonthlyIncome] = useState(4000);
@@ -71,6 +68,10 @@ export const IntroScreen = ({
     }
   };
 
+  const navigateToAllocation = () => {
+    navigation.navigate('IntroAllocationScreen');
+  }
+
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
@@ -80,22 +81,22 @@ export const IntroScreen = ({
         const wantPercentage = percentages.want;
         const savePercentage = percentages.save;
 
-        const budget: Omit<BaseBudget, 'budgetId'> = {
+        const baseBudget: Omit<BaseBudget, 'budgetId'> = {
           userId: authUser.uid,
           needPercentage,
           wantPercentage,
           savePercentage,
+          baseAllocations: [],
         };
-        const budgetId = await BudgetService.createBaseBudget(budget);
-        const user: AppUser = {
+        const newUser: AppUser = {
           displayName: authUser.displayName || '',
           email: authUser.email || '',
           uid: authUser.uid,
           netMonthlyIncome,
-          budgetId,
+          budgetId: '',
         };
-        await UserService.addUser(user);
-        onProfileUpdate(user);
+        setIsLoading(false);
+        navigateToAllocation();
       }
     } catch (error: any) {
       alerts.alert(

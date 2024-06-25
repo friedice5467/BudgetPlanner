@@ -19,6 +19,7 @@ import {
   Allocation,
   BaseBudget,
   BudgetType,
+  BaseAllocation,
 } from '../models/budget/budget';
 import BudgetService from '../services/BudgetService';
 import UserService from '../services/UserService';
@@ -88,24 +89,56 @@ export const BudgetComponent = ({
   const colorMap = consts.colorMap;
   const iconMap = consts.iconMap;
 
+  const calculateAmount = (
+    income: number,
+    percentage: number,
+    allocations: BaseAllocation[],
+  ) => {
+    const totalAllocated = allocations.reduce(
+      (sum, current) => sum + current.amount,
+      0,
+    );
+    return (income * percentage) / 100 - totalAllocated;
+  };
+
   useEffect(() => {
     if (!isIntro) {
       setNetMonthlyIncome(user.netMonthlyIncome);
       async function fetchBudget() {
-        const userBudget = await BudgetService.getBaseBudget(user.budgetId);
+        const baseBudget = await BudgetService.getBaseBudget(user.budgetId, user.uid);
+        const monthlyBudget = await BudgetService.getMonthlyBudget(user.uid, user.budgetId, format(selectedDate, 'MM-yyyy'));
+        console.log(`monthlyBudget: ${JSON.stringify(monthlyBudget)}`);
         setMonthlyBudget({
-          ...userBudget,
+          ...baseBudget,
           monthYear: format(selectedDate, 'MM-yyyy'),
-          allocations: userBudget.baseAllocations,
+          allocations: baseBudget.baseAllocations,
         });
         setNeedAmount(
-          (user.netMonthlyIncome * userBudget.needPercentage) / 100,
+          calculateAmount(
+            user.netMonthlyIncome,
+            baseBudget.needPercentage,
+            baseBudget.baseAllocations.filter(
+              a => a.type === ('need' as BudgetType),
+            ),
+          ),
         );
         setWantAmount(
-          (user.netMonthlyIncome * userBudget.wantPercentage) / 100,
+          calculateAmount(
+            user.netMonthlyIncome,
+            baseBudget.wantPercentage,
+            baseBudget.baseAllocations.filter(
+              a => a.type === ('want' as BudgetType),
+            ),
+          ),
         );
         setSaveAmount(
-          (user.netMonthlyIncome * userBudget.savePercentage) / 100,
+          calculateAmount(
+            user.netMonthlyIncome,
+            baseBudget.savePercentage,
+            baseBudget.baseAllocations.filter(
+              a => a.type === ('save' as BudgetType),
+            ),
+          ),
         );
       }
       fetchBudget();
@@ -222,21 +255,22 @@ export const BudgetComponent = ({
   };
 
   const editAllocation = (alloc: Allocation) => {
-    console.log(`edit has been clicked TODO`)
-  }
+    console.log(`edit has been clicked TODO`);
+  };
 
   const deleteAllocation = (alloc: Allocation) => {
-    console.log(`delete has been activated TODO`)
-  }
+    console.log(`delete has been activated TODO`);
+  };
 
-  const saveIntroBudget = async() => {
+  const saveIntroBudget = async () => {
     baseBudget!.baseAllocations = monthlyBudget!.allocations;
-    const budgetId = await BudgetService.createBaseBudget(baseBudget as BaseBudget);
+    const budgetId = await BudgetService.createBaseBudget(
+      baseBudget as BaseBudget,
+    );
     newUser!.budgetId = budgetId;
     await UserService.addUser(newUser as AppUser);
-    if(onProfileUpdate)
-        onProfileUpdate(newUser as AppUser);
-  }
+    if (onProfileUpdate) onProfileUpdate(newUser as AppUser);
+  };
 
   useEffect(() => {
     if (modalVisible) {

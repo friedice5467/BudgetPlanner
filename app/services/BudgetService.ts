@@ -17,39 +17,46 @@ class BudgetService {
       budgetId: budgetId
     };
 
-    await this.budgetsCollection.doc(budgetId).set(baseBudget);
+    await this.budgetsCollection
+    .doc(budgetId)
+    .collection('baseBudget')
+    .doc(baseBudget.userId)
+    .set(baseBudget);
     return baseBudget.budgetId as string;
   }
 
-  async getBaseBudget(budgetId: string): Promise<BaseBudget> {
-    const budgetDoc = await this.budgetsCollection.doc(budgetId).get();
+  async getBaseBudget(budgetId: string, userId : string): Promise<BaseBudget> {
+    const budgetDoc = await this.budgetsCollection.doc(budgetId).collection('baseBudget').doc(userId).get();
     if (!budgetDoc.exists) {
       throw new Error('Base budget not found');
     }
     return budgetDoc.data() as BaseBudget;
   }
 
-  async createMonthlyBudget(baseBudgetId: string, monthYear: string): Promise<void> {
-    const baseBudgetDoc = await this.budgetsCollection.doc(baseBudgetId).get();
-    if (!baseBudgetDoc.exists) {
-      throw new Error('Base budget not found');
-    }
+  async createMonthlyBudget(baseBudgetId: string, userId: string, monthYear: string): Promise<MonthlyBudget> {
+    const baseBudgetDoc = await this.budgetsCollection.doc(baseBudgetId).collection('baseBudget').doc(userId).get();
 
     const baseBudget = baseBudgetDoc.data() as BaseBudget;
+    //log base budget here
+    console.log(`baseBudget: ${baseBudget}`)
     const monthlyBudget: MonthlyBudget = {
       ...baseBudget,
       monthYear,
-      allocations: baseBudget.baseAllocations  
+      allocations: baseBudget.baseAllocations
     };
 
     await this.budgetsCollection
-      .doc(baseBudget.userId)
+      .doc(baseBudgetId)
       .collection('monthlyBudgets')
+      .doc(baseBudget.userId)
+      .collection('mm-YYYY')
       .doc(monthYear)
       .set(monthlyBudget);
+
+    return monthlyBudget;
   }
 
-  async getMonthlyBudget(userId: string, monthYear: string): Promise<MonthlyBudget> {
+  async getMonthlyBudget(userId: string, budgetId: string, monthYear: string): Promise<MonthlyBudget> {
     const monthlyBudgetDoc = await this.budgetsCollection
       .doc(userId)
       .collection('monthlyBudgets')
@@ -57,13 +64,17 @@ class BudgetService {
       .get();
 
     if (!monthlyBudgetDoc.exists) {
-      throw new Error('Monthly budget not found');
+      return await this.createMonthlyBudget(budgetId, userId, monthYear);
     }
     return monthlyBudgetDoc.data() as MonthlyBudget;
   }
 
-  async createBaseAllocations(userId: string, monthYear: string, allocations: BaseAllocation[]) {
-    
+  async updateMonthlyBudget(userId: string, monthYear: string, updatedBudget: MonthlyBudget) {
+    await this.budgetsCollection
+      .doc(userId)
+      .collection('monthlyBudgets')
+      .doc(monthYear)
+      .set(updatedBudget);
   }
 
   async addAllocation(userId: string, monthYear: string, allocation: Allocation) {
@@ -72,7 +83,7 @@ class BudgetService {
         .doc(userId)
         .collection('monthlyBudgets')
         .doc(monthYear);
-        
+
       const monthlyBudgetDoc = await transaction.get(monthlyBudgetRef);
       if (!monthlyBudgetDoc.exists) {
         throw new Error('Monthly budget not found');

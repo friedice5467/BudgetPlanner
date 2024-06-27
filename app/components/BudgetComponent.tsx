@@ -107,9 +107,9 @@ export const BudgetComponent = ({
   };
 
   async function GetMonthlyBudget() {
-    setNetMonthlyIncome(user.netMonthlyIncome);
     async function fetchBudget() {
       const baseBudget = await BudgetService.getBaseBudget(user.budgetId);
+      setNetMonthlyIncome(baseBudget.netMonthlyIncome);
       const monthlyBudget = await BudgetService.getMonthlyBudget(
         user.budgetId,
         format(selectedDate, 'MM-yyyy'),
@@ -117,7 +117,7 @@ export const BudgetComponent = ({
       setMonthlyBudget(monthlyBudget);
       setNeedAmount(
         calculateAmount(
-          user.netMonthlyIncome,
+            baseBudget.netMonthlyIncome,
           baseBudget.needPercentage,
           monthlyBudget.allocations.filter(
             a => a.type === ('need' as BudgetType),
@@ -126,7 +126,7 @@ export const BudgetComponent = ({
       );
       setWantAmount(
         calculateAmount(
-          user.netMonthlyIncome,
+            baseBudget.netMonthlyIncome,
           baseBudget.wantPercentage,
           monthlyBudget.allocations.filter(
             a => a.type === ('want' as BudgetType),
@@ -135,7 +135,7 @@ export const BudgetComponent = ({
       );
       setSaveAmount(
         calculateAmount(
-          user.netMonthlyIncome,
+            baseBudget.netMonthlyIncome,
           baseBudget.savePercentage,
           monthlyBudget.allocations.filter(
             a => a.type === ('save' as BudgetType),
@@ -152,21 +152,26 @@ export const BudgetComponent = ({
       if (!isIntro) {
         await GetMonthlyBudget();
       } else {
-        setNetMonthlyIncome(newUser?.netMonthlyIncome || 0);
+        setNetMonthlyIncome(baseBudget?.netMonthlyIncome || 0);
         setMonthlyBudget({
           ...(baseBudget as BaseBudget),
           monthYear: format(selectedDate, 'MM-yyyy'),
           allocations: [],
+            excessMoney: {
+                need: 0,
+                want: 0,
+                save: 0,
+            },
         });
         if (newUser && baseBudget) {
           setNeedAmount(
-            (newUser.netMonthlyIncome * baseBudget.needPercentage) / 100,
+            (baseBudget.netMonthlyIncome * baseBudget.needPercentage) / 100,
           );
           setWantAmount(
-            (newUser.netMonthlyIncome * baseBudget.wantPercentage) / 100,
+            (baseBudget.netMonthlyIncome * baseBudget.wantPercentage) / 100,
           );
           setSaveAmount(
-            (newUser.netMonthlyIncome * baseBudget.savePercentage) / 100,
+            (baseBudget.netMonthlyIncome * baseBudget.savePercentage) / 100,
           );
         }
       }
@@ -292,10 +297,10 @@ export const BudgetComponent = ({
     };
     monthlyBudget?.allocations.push(newAlloc);
     if (!isIntro) {
-      BudgetService.addAllocation(
-        user.uid,
+      BudgetService.modifyMonthlyBudget(
+        monthlyBudget!.budgetId,
         format(selectedDate, 'MM-yyyy'),
-        newAlloc,
+        {newAllocation: newAlloc},
       );
     }
     const baseAmt = parseFloat(getBudgetAmounts(catType) as string);
@@ -306,7 +311,7 @@ export const BudgetComponent = ({
   };
 
   const editAllocationToCat = async () => {
-    const newAlloc: Allocation = {
+    const editAlloc: Allocation = {
       allocationId: alloc!.allocationId,
       type: catType,
       description: description,
@@ -317,15 +322,15 @@ export const BudgetComponent = ({
     const handle = getBudgetHandlers(catType);
     handle(baseAmt - amount + alloc!.amount);
     monthlyBudget!.allocations = monthlyBudget!.allocations.map(alloc => {
-      if (alloc.allocationId === newAlloc.allocationId) {
-        return newAlloc;
+      if (alloc.allocationId === editAlloc.allocationId) {
+        return editAlloc;
       }
       return alloc;
     });
-    await BudgetService.updateAllocation(
-      user.uid,
+    await BudgetService.modifyMonthlyBudget(
+      monthlyBudget!.budgetId,
       format(selectedDate, 'MM-yyyy'),
-      newAlloc,
+      {updatedAllocation: editAlloc},
     );
     setIsEditing(false);
     hideModal();
@@ -345,15 +350,14 @@ export const BudgetComponent = ({
 
   const deleteAllocationHandler = async () => {
     setLoadingState(true);
-    await BudgetService.deleteAllocation(
+    await BudgetService.modifyMonthlyBudget(
       monthlyBudget!.budgetId,
       format(selectedDate, 'MM-yyyy'),
-      alloc!.allocationId,
+      {deleteAllocation: alloc},
     );
     monthlyBudget!.allocations = monthlyBudget!.allocations.filter(
       a => a.allocationId !== alloc!.allocationId,
     );
-    //add back to category budget
     const baseAmt = parseFloat(getBudgetAmounts(alloc!.type) as string);
     const handle = getBudgetHandlers(alloc!.type);
     handle(baseAmt + alloc!.amount);

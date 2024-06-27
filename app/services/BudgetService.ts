@@ -10,7 +10,7 @@ class BudgetService {
       throw new Error('Invalid budget percentages');
     }
 
-    const budgetId = this.budgetsCollection.doc().id; 
+    const budgetId = this.budgetsCollection.doc().id;
     const baseBudget: BaseBudget = {
       ...budget,
       budgetId
@@ -35,10 +35,25 @@ class BudgetService {
     }
 
     const baseBudget = baseBudgetDoc.data() as BaseBudget;
+
+    const netIncome = baseBudget.netMonthlyIncome;
+
+    const totals = baseBudget.baseAllocations.reduce((acc, alloc) => {
+      acc[alloc.type] += alloc.amount;
+      return acc;
+    }, { need: 0, want: 0, save: 0 });
+
+    const excessMoney = {
+      need: (netIncome * baseBudget.needPercentage / 100) - totals.need,
+      want: (netIncome * baseBudget.wantPercentage / 100) - totals.want,
+      save: (netIncome * baseBudget.savePercentage / 100) - totals.save,
+    };
+
     const monthlyBudget: MonthlyBudget = {
       ...baseBudget,
       monthYear,
-      allocations: baseBudget.baseAllocations
+      allocations: baseBudget.baseAllocations,
+      excessMoney: excessMoney
     };
     await this.budgetsCollection
       .doc(budgetId)
@@ -62,82 +77,89 @@ class BudgetService {
     return monthlyBudgetDoc.data() as MonthlyBudget;
   }
 
-  async addAllocation(userId: string, monthYear: string, allocation: Allocation) {
-    await this.executeInTransaction(async (transaction) => {
-      const monthlyBudgetRef = this.budgetsCollection
-        .doc(userId)
-        .collection('monthlyBudgets')
-        .doc(monthYear);
-
-      const monthlyBudgetDoc = await transaction.get(monthlyBudgetRef);
-      if (!monthlyBudgetDoc.exists) {
-        throw new Error('Monthly budget not found');
-      }
-
-      const monthlyBudget = monthlyBudgetDoc.data() as MonthlyBudget;
-      monthlyBudget.allocations.push(allocation);
-      transaction.update(monthlyBudgetRef, { allocations: monthlyBudget.allocations });
-    });
-  }
-
-  async updateAllocation(userId: string, monthYear: string, updatedAllocation: Allocation) {
-    await this.executeInTransaction(async (transaction) => {
-      const monthlyBudgetRef = this.budgetsCollection.doc(userId).collection('monthlyBudgets').doc(monthYear);
-      const monthlyBudgetDoc = await transaction.get(monthlyBudgetRef);
-      if (!monthlyBudgetDoc.exists) {
-        throw new Error('Monthly budget not found');
-      }
-
-      const monthlyBudget = monthlyBudgetDoc.data() as MonthlyBudget;
-      const allocationIndex = monthlyBudget.allocations.findIndex(a => a.allocationId === updatedAllocation.allocationId);
-      if (allocationIndex === -1) {
-        throw new Error('Allocation not found');
-      }
-
-      monthlyBudget.allocations[allocationIndex] = updatedAllocation;
-      transaction.update(monthlyBudgetRef, { allocations: monthlyBudget.allocations });
-
-      if (updatedAllocation.isStatic) {
-        await this.updateBaseAllocations(userId, allocationIndex.toString(), updatedAllocation, monthYear);
-      }
-    });
-  }
-
-  private async updateBaseAllocations(userId: string, allocationId: string, updatedAllocation: Allocation, currentMonthYear: string) {
-    await this.executeInTransaction(async (transaction) =>{
-      const baseBudgetRef = this.budgetsCollection.doc(userId);
-      const baseBudgetDoc = await transaction.get(baseBudgetRef);
-      if (!baseBudgetDoc.exists) {
-        throw new Error('Base budget not found');
-      }
-
-      const baseBudget = baseBudgetDoc.data() as BaseBudget;
-      const allocationIndex = baseBudget.baseAllocations.findIndex(a => a.allocationId === allocationId);
-      if (allocationIndex === -1) {
-        throw new Error('Allocation not found');
-      }
-
-      baseBudget.baseAllocations[allocationIndex] = updatedAllocation;
-      transaction.update(baseBudgetRef, { baseAllocations: baseBudget.baseAllocations });
-    })
-  }
-
-  async deleteAllocation(budgetId: string, monthYear: string, allocationId: string) {
+  async modifyMonthlyBudget(budgetId: string, monthYear: string, modification: Partial<MonthlyBudget> & { newAllocation?: Allocation, updatedAllocation?: Allocation, newBaseAllocation?: BaseAllocation, updatedBaseAllocation?: BaseAllocation, deleteAllocation?: Allocation }) {
     await this.executeInTransaction(async (transaction) => {
       const monthlyBudgetRef = this.budgetsCollection
         .doc(budgetId)
         .collection('monthlyBudgets')
         .doc(monthYear);
 
-      const monthlyBudgetDoc = await transaction.get(monthlyBudgetRef);
-      if (!monthlyBudgetDoc.exists) {
+      const doc = await transaction.get(monthlyBudgetRef);
+      if (!doc.exists) {
         throw new Error('Monthly budget not found');
       }
 
-      const monthlyBudget = monthlyBudgetDoc.data() as MonthlyBudget;
-      monthlyBudget.allocations = monthlyBudget.allocations.filter(a => a.allocationId !== allocationId);
-      transaction.update(monthlyBudgetRef, { allocations: monthlyBudget.allocations });
+      const monthlyBudget = doc.data() as MonthlyBudget;
+
+      if (modification.newAllocation) {
+        monthlyBudget.allocations.push(modification.newAllocation);
+      }
+
+      if (modification.updatedAllocation) {
+        const index = monthlyBudget.allocations.findIndex(a => a.allocationId === modification.updatedAllocation!.allocationId);
+        if (index === -1) {
+          throw new Error('Allocation not found');
+        }
+        monthlyBudget.allocations[index] = modification.updatedAllocation;
+      }
+
+      if (modification.newBaseAllocation) {
+        this.addBaseAllocation(budgetId, modification.newBaseAllocation, transaction);
+      }
+
+      if (modification.updatedBaseAllocation) {
+        this.updateBaseAllocation(budgetId, modification.updatedBaseAllocation, monthYear, transaction);
+      }
+
+      if (modification.deleteAllocation) {
+        monthlyBudget.allocations = monthlyBudget.allocations.filter(a => a.allocationId !== modification.deleteAllocation!.allocationId);
+      }
+
+      const netIncome = monthlyBudget.netMonthlyIncome;
+      const totals = monthlyBudget.allocations.reduce((acc, alloc) => {
+        acc[alloc.type] += alloc.amount;
+        return acc;
+      }, { need: 0, want: 0, save: 0 });
+
+      monthlyBudget.excessMoney = {
+        need: (netIncome * monthlyBudget.needPercentage / 100) - totals.need,
+        want: (netIncome * monthlyBudget.wantPercentage / 100) - totals.want,
+        save: (netIncome * monthlyBudget.savePercentage / 100) - totals.save,
+      };
+
+      transaction.update(monthlyBudgetRef, monthlyBudget);
     });
+  }
+
+  private async addBaseAllocation(userId: string, newBaseAllocation: BaseAllocation, transaction: Transaction) {
+    const baseBudgetRef = this.budgetsCollection.doc(userId);
+    const baseBudgetDoc = await transaction.get(baseBudgetRef);
+    if (!baseBudgetDoc.exists) {
+      throw new Error('Base budget not found');
+    }
+
+    const baseBudget = baseBudgetDoc.data() as BaseBudget;
+    baseBudget.baseAllocations.push(newBaseAllocation);
+    transaction.update(baseBudgetRef, { baseAllocations: baseBudget.baseAllocations });
+  }
+
+  private async updateBaseAllocation(userId: string, updatedBaseAllocation: BaseAllocation, currentMonthYear: string, transaction: Transaction) {
+    const baseBudgetRef = this.budgetsCollection.doc(userId);
+    const baseBudgetDoc = await transaction.get(baseBudgetRef);
+    if (!baseBudgetDoc.exists) {
+      throw new Error('Base budget not found');
+    }
+
+    const baseBudget = baseBudgetDoc.data() as BaseBudget;
+    const allocationIndex = baseBudget.baseAllocations.findIndex(a => a.allocationId === updatedBaseAllocation.allocationId);
+    if (allocationIndex === -1) {
+      throw new Error('Base allocation not found');
+    }
+
+    baseBudget.baseAllocations[allocationIndex] = updatedBaseAllocation;
+    transaction.update(baseBudgetRef, { baseAllocations: baseBudget.baseAllocations });
+
+    //this.propagateBaseAllocationUpdates(userId, updatedBaseAllocation, currentMonthYear, transaction);
   }
 
   private async executeInTransaction(callback: (transaction: Transaction) => Promise<void>) {

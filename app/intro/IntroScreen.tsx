@@ -84,6 +84,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
 
         const baseBudget: Omit<BaseBudget, 'budgetId'> = {
           userId: authUser.uid,
+          netMonthlyIncome,
           needPercentage,
           wantPercentage,
           savePercentage,
@@ -93,7 +94,6 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
           displayName: authUser.displayName || '',
           email: authUser.email || '',
           uid: authUser.uid,
-          netMonthlyIncome,
           budgetId: '',
           startDate: format(new Date(), 'MM-yyyy')
         };

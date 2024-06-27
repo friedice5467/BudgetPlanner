@@ -18,9 +18,10 @@ import { useOpenPercentageSlider } from '../components/PercentageSliderModal';
 import { useThemeBasedConstants } from '../util/consts';
 import { IntroScreenProps } from '../models/navigation';
 import { useProfile } from '../contexts/NewUserContext';
+import {format} from 'date-fns';
 
 export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
-  const { setUser, setBaseBudget, onProfileUpdate } = useProfile();
+  const { setUser, setBaseBudget } = useProfile();
   const theme = useTheme();
   const alerts = useAlerts();
   const [netMonthlyIncome, setNetMonthlyIncome] = useState(4000);
@@ -94,6 +95,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
           uid: authUser.uid,
           netMonthlyIncome,
           budgetId: '',
+          startDate: format(new Date(), 'MM-yyyy')
         };
         setIsLoading(false);
         setUser(newUser);

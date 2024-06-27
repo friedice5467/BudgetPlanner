@@ -4,4 +4,5 @@ export interface AppUser {
     displayName : string | null;
     netMonthlyIncome: number;
     budgetId: string;
+    startDate: string;
 }

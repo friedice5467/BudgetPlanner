@@ -21,6 +21,7 @@ const { baseBudget, user, onProfileUpdate } = useProfile();
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
   },
 });
 

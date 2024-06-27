@@ -27,6 +27,7 @@ import {AppUser} from '../models/appUser';
 import {UserContext} from '../contexts/AuthContext';
 import {useModal} from '../contexts/ModalContext';
 import {useThemeBasedConstants} from '../util/consts';
+import {currencyFormatter, generateUUID} from '../util/helpers';
 
 export const BudgetComponent = ({
   isIntro,
@@ -40,7 +41,8 @@ export const BudgetComponent = ({
   onProfileUpdate: ((x: AppUser) => void) | undefined;
 }) => {
   const theme = useTheme();
-  const {showModal, hideModal, modalVisible, setModalVisible} = useModal();
+  const {showModal, hideModal, modalVisible, setModalVisible, isLoading, setLoadingState} =
+    useModal();
   const [catType, setCatType] = useState('need' as BudgetType);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthlyBudget, setMonthlyBudget] = useState<MonthlyBudget | null>(
@@ -56,6 +58,9 @@ export const BudgetComponent = ({
   const [needAmount, setNeedAmount] = useState(0);
   const [wantAmount, setWantAmount] = useState(0);
   const [saveAmount, setSaveAmount] = useState(0);
+  const [alloc, setAlloc] = useState<Allocation>();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDelete, setIsDelete] = useState(false);
 
   const getBudgetAmounts = (type: BudgetType) => {
     switch (type) {
@@ -101,72 +106,99 @@ export const BudgetComponent = ({
     return (income * percentage) / 100 - totalAllocated;
   };
 
-  useEffect(() => {
-    if (!isIntro) {
-      setNetMonthlyIncome(user.netMonthlyIncome);
-      async function fetchBudget() {
-        const baseBudget = await BudgetService.getBaseBudget(user.budgetId, user.uid);
-        const monthlyBudget = await BudgetService.getMonthlyBudget(user.uid, user.budgetId, format(selectedDate, 'MM-yyyy'));
-        console.log(`monthlyBudget: ${JSON.stringify(monthlyBudget)}`);
-        setMonthlyBudget({
-          ...baseBudget,
-          monthYear: format(selectedDate, 'MM-yyyy'),
-          allocations: baseBudget.baseAllocations,
-        });
-        setNeedAmount(
-          calculateAmount(
-            user.netMonthlyIncome,
-            baseBudget.needPercentage,
-            baseBudget.baseAllocations.filter(
-              a => a.type === ('need' as BudgetType),
-            ),
+  async function GetMonthlyBudget() {
+    setNetMonthlyIncome(user.netMonthlyIncome);
+    async function fetchBudget() {
+      const baseBudget = await BudgetService.getBaseBudget(user.budgetId);
+      const monthlyBudget = await BudgetService.getMonthlyBudget(
+        user.budgetId,
+        format(selectedDate, 'MM-yyyy'),
+      );
+      setMonthlyBudget(monthlyBudget);
+      setNeedAmount(
+        calculateAmount(
+          user.netMonthlyIncome,
+          baseBudget.needPercentage,
+          monthlyBudget.allocations.filter(
+            a => a.type === ('need' as BudgetType),
           ),
-        );
-        setWantAmount(
-          calculateAmount(
-            user.netMonthlyIncome,
-            baseBudget.wantPercentage,
-            baseBudget.baseAllocations.filter(
-              a => a.type === ('want' as BudgetType),
-            ),
+        ),
+      );
+      setWantAmount(
+        calculateAmount(
+          user.netMonthlyIncome,
+          baseBudget.wantPercentage,
+          monthlyBudget.allocations.filter(
+            a => a.type === ('want' as BudgetType),
           ),
-        );
-        setSaveAmount(
-          calculateAmount(
-            user.netMonthlyIncome,
-            baseBudget.savePercentage,
-            baseBudget.baseAllocations.filter(
-              a => a.type === ('save' as BudgetType),
-            ),
+        ),
+      );
+      setSaveAmount(
+        calculateAmount(
+          user.netMonthlyIncome,
+          baseBudget.savePercentage,
+          monthlyBudget.allocations.filter(
+            a => a.type === ('save' as BudgetType),
           ),
-        );
-      }
-      fetchBudget();
-    } else {
-      setNetMonthlyIncome(newUser?.netMonthlyIncome || 0);
-      setMonthlyBudget({
-        ...(baseBudget as BaseBudget),
-        monthYear: format(selectedDate, 'MM-yyyy'),
-        allocations: [],
-      });
-      if (newUser && baseBudget) {
-        setNeedAmount(
-          (newUser.netMonthlyIncome * baseBudget.needPercentage) / 100,
-        );
-        setWantAmount(
-          (newUser.netMonthlyIncome * baseBudget.wantPercentage) / 100,
-        );
-        setSaveAmount(
-          (newUser.netMonthlyIncome * baseBudget.savePercentage) / 100,
-        );
-      }
+        ),
+      );
     }
-  }, [selectedDate, user?.uid, user?.budgetId]);
+    fetchBudget();
+  }
 
-  const onValueChange = (event: any, newDate: Date) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoadingState(true);
+      if (!isIntro) {
+        await GetMonthlyBudget();
+      } else {
+        setNetMonthlyIncome(newUser?.netMonthlyIncome || 0);
+        setMonthlyBudget({
+          ...(baseBudget as BaseBudget),
+          monthYear: format(selectedDate, 'MM-yyyy'),
+          allocations: [],
+        });
+        if (newUser && baseBudget) {
+          setNeedAmount(
+            (newUser.netMonthlyIncome * baseBudget.needPercentage) / 100,
+          );
+          setWantAmount(
+            (newUser.netMonthlyIncome * baseBudget.wantPercentage) / 100,
+          );
+          setSaveAmount(
+            (newUser.netMonthlyIncome * baseBudget.savePercentage) / 100,
+          );
+        }
+      }
+      setLoadingState(false);
+    };
+
+    fetchData();
+  }, []);
+
+  const onValueChange = async (event: any, newDate: Date) => {
     const date = newDate || selectedDate;
     setIsPickerOpen(false);
     setSelectedDate(date);
+    await GetMonthlyBudget();
+  };
+
+  const checkIfCurrentMonth = () => {
+    return user.startDate === format(new Date(), 'MM-yyyy') ? true : false;
+  };
+
+  const getMinDate = () => {
+    return new Date(user.startDate);
+  };
+
+  const chevronSelect = async (isPast: boolean) => {
+    if (isPast) {
+      setSelectedDate(subMonths(selectedDate, 1));
+    } else {
+      setSelectedDate(addMonths(selectedDate, 1));
+    }
+
+    await GetMonthlyBudget();
   };
 
   const handleAmountError = (text: string) => {
@@ -177,9 +209,14 @@ export const BudgetComponent = ({
     if (value > netMonthlyIncome) {
       return true;
     }
-    if (
-      value >= parseFloat(getBudgetAmounts(catType as BudgetType) as string)
-    ) {
+    let effectiveBudgetAmount = parseFloat(
+      getBudgetAmounts(catType as BudgetType) as string,
+    );
+    if (isEditing) {
+      effectiveBudgetAmount += value;
+    }
+
+    if (value >= effectiveBudgetAmount) {
       return true;
     }
     return false;
@@ -193,9 +230,14 @@ export const BudgetComponent = ({
     if (value > netMonthlyIncome) {
       return 'Amount cannot exceed net monthly income';
     }
-    if (
-      value >= parseFloat(getBudgetAmounts(catType as BudgetType) as string)
-    ) {
+    let effectiveBudgetAmount = parseFloat(
+      getBudgetAmounts(catType as BudgetType) as string,
+    );
+    if (isEditing) {
+      effectiveBudgetAmount += value;
+    }
+
+    if (value >= effectiveBudgetAmount) {
       return 'Amount cannot exceed budgeted amount';
     }
     return '';
@@ -222,7 +264,16 @@ export const BudgetComponent = ({
   const initAllocationModalVals = () => {
     setDescription('');
     setAmount(0);
-    setRecurs(false);
+    setRecurs(isIntro ? true : false);
+  };
+
+  const editAllocationModalVals = (alloc: Allocation) => {
+    setDescription(alloc.description);
+    setAmount(alloc.amount);
+    setRecurs(alloc.isStatic);
+    setCatType(alloc.type);
+    setAlloc(alloc);
+    setIsEditing(true);
   };
 
   const openAllocationModal = (type: string) => {
@@ -233,7 +284,7 @@ export const BudgetComponent = ({
 
   const addAllocationToCat = () => {
     const newAlloc: Allocation = {
-      allocationId: '',
+      allocationId: generateUUID(),
       type: catType,
       description: description,
       amount: amount,
@@ -254,12 +305,62 @@ export const BudgetComponent = ({
     setModalVisible(false);
   };
 
+  const editAllocationToCat = async () => {
+    const newAlloc: Allocation = {
+      allocationId: alloc!.allocationId,
+      type: catType,
+      description: description,
+      amount: amount,
+      isStatic: recurs,
+    };
+    const baseAmt = parseFloat(getBudgetAmounts(catType) as string);
+    const handle = getBudgetHandlers(catType);
+    handle(baseAmt - amount + alloc!.amount);
+    monthlyBudget!.allocations = monthlyBudget!.allocations.map(alloc => {
+      if (alloc.allocationId === newAlloc.allocationId) {
+        return newAlloc;
+      }
+      return alloc;
+    });
+    await BudgetService.updateAllocation(
+      user.uid,
+      format(selectedDate, 'MM-yyyy'),
+      newAlloc,
+    );
+    setIsEditing(false);
+    hideModal();
+    setModalVisible(false);
+  };
+
   const editAllocation = (alloc: Allocation) => {
-    console.log(`edit has been clicked TODO`);
+    editAllocationModalVals(alloc);
+    setModalVisible(true);
   };
 
   const deleteAllocation = (alloc: Allocation) => {
-    console.log(`delete has been activated TODO`);
+    setIsDelete(true);
+    setAlloc(alloc);
+    setModalVisible(true);
+  };
+
+  const deleteAllocationHandler = async () => {
+    setLoadingState(true);
+    await BudgetService.deleteAllocation(
+      monthlyBudget!.budgetId,
+      format(selectedDate, 'MM-yyyy'),
+      alloc!.allocationId,
+    );
+    monthlyBudget!.allocations = monthlyBudget!.allocations.filter(
+      a => a.allocationId !== alloc!.allocationId,
+    );
+    //add back to category budget
+    const baseAmt = parseFloat(getBudgetAmounts(alloc!.type) as string);
+    const handle = getBudgetHandlers(alloc!.type);
+    handle(baseAmt + alloc!.amount);
+    setLoadingState(false);
+    setIsDelete(false);
+    setModalVisible(false);
+    hideModal();
   };
 
   const saveIntroBudget = async () => {
@@ -273,7 +374,7 @@ export const BudgetComponent = ({
   };
 
   useEffect(() => {
-    if (modalVisible) {
+    if (modalVisible && !isDelete) {
       showModal(
         <Card style={styles.cardStyle}>
           <Card.Title
@@ -319,7 +420,11 @@ export const BudgetComponent = ({
               mode="contained"
               icon="check"
               onPress={() => {
-                addAllocationToCat();
+                if (isEditing) {
+                  editAllocationToCat();
+                } else {
+                  addAllocationToCat();
+                }
               }}
               style={styles.button}>
               Confirm
@@ -327,8 +432,50 @@ export const BudgetComponent = ({
           </Card.Content>
         </Card>,
       );
+    } else if (modalVisible && isDelete) {
+      showModal(
+        <Card style={styles.cardStyle}>
+          <Card.Title
+            title={`Delete ${
+              catType.toString().charAt(0).toUpperCase() +
+              catType.toString().slice(1)
+            }: ${alloc?.description ? ` ${alloc.description}` : ''}`}
+            titleStyle={{fontSize: 20, textAlign: 'left'}}
+          />
+          <Card.Content>
+            <View style={styles.contentContainer}>
+              <Text style={styles.alertText}>
+                Are you sure you want to delete this allocation?
+              </Text>
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="contained"
+                  icon="trash-can-outline"
+                  loading={isLoading}
+                  style={{width: '50%', marginRight: 10}}
+                  buttonColor={theme.colors.error}
+                  onPress={async () => {
+                    await deleteAllocationHandler();
+                  }}>
+                  Confirm
+                </Button>
+                <Button
+                  mode="outlined"
+                  style={{width: '50%'}}
+                  onPress={() => {
+                    setIsDelete(false);
+                    setModalVisible(false);
+                    hideModal();
+                  }}>
+                  Cancel
+                </Button>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>,
+      );
     }
-  }, [modalVisible, description, amount, recurs]);
+  }, [modalVisible, isDelete, description, amount, recurs]);
 
   return (
     <View style={styles.container}>
@@ -344,8 +491,9 @@ export const BudgetComponent = ({
           ]}>
           <IconButton
             icon="chevron-left"
-            onPress={() => setSelectedDate(subMonths(selectedDate, 1))}
+            onPress={async () => await chevronSelect(true)}
             iconColor={theme.colors.onPrimaryContainer}
+            disabled={checkIfCurrentMonth()}
             size={30}
           />
           <TouchableOpacity onPress={() => setIsPickerOpen(true)}>
@@ -355,7 +503,7 @@ export const BudgetComponent = ({
           </TouchableOpacity>
           <IconButton
             icon="chevron-right"
-            onPress={() => setSelectedDate(addMonths(selectedDate, 1))}
+            onPress={async () => await chevronSelect(false)}
             iconColor={theme.colors.onPrimaryContainer}
             size={30}
           />
@@ -366,6 +514,7 @@ export const BudgetComponent = ({
         <MonthPicker
           locale="en"
           value={selectedDate}
+          maximumDate={getMinDate()}
           onChange={onValueChange}
         />
       )}
@@ -383,10 +532,11 @@ export const BudgetComponent = ({
                 },
               ]}>
               <List.Accordion
-                title={`${consts.budgetMap[type]} - $${(
-                  (netMonthlyIncome * getBudgetType(type)) /
-                  100
-                ).toFixed(2)} / $${getBudgetAmounts(type as BudgetType)}`}
+                title={`${consts.budgetMap[type]} - ${currencyFormatter(
+                  ((netMonthlyIncome * getBudgetType(type)) / 100).toFixed(2),
+                )} / ${currencyFormatter(
+                  getBudgetAmounts(type as BudgetType) as string,
+                )}`}
                 left={props => (
                   <List.Icon
                     {...props}
@@ -450,6 +600,7 @@ export const BudgetComponent = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
   },
   dateNavContainer: {
     flexDirection: 'row',
@@ -495,5 +646,15 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 20,
     fontSize: 16,
+  },
+  contentContainer: {
+  },
+  alertText: {
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
   },
 });

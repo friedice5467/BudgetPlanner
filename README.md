@@ -1,59 +1,71 @@
-# React Native CLI Firebase Template
+# Budget Planner Application
 
-This is a react native template for quickly spinning up a react native typescript + firebase project.
+## Overview
+The Budget Planner application is a tool designed to help individuals manage their finances efficiently. Built with React Native and integrated with Firebase for backend operations, this application allows users to set monthly budgets and track their spending against categorized allocations.
 
-## Prerequisites
+## Features
 
-Before you begin, ensure you have the following installed:
-- Node.js (https://nodejs.org/)
-- Watchman (for macOS users)
-- Android Studio or Xcode (for iOS development, macOS only)
-- An active Firebase project
+- **User Authentication**: Secure login and registration functionality using Firebase Authentication.
+- **Budget Setup**: Users can create a base budget that outlines their expected monthly spending across three categories: Needs, Wants, and Savings.
+- **Monthly Budget Tracking**: Automatic rollover of base allocations into specific monthly budgets, with the ability to adjust and add one-time expenses or savings.
+- **Analytics**: Visual representation of spending habits over time with an integrated line chart, providing insights into financial trends and helping users adjust their budgets accordingly.
+- **Responsive UI**: Clean and modern interface that provides an intuitive user experience across various devices and screen sizes.
 
-## Using This Template
+## Technologies Used
 
-### Create a New Project
+- **Frontend**: React Native, React Native Paper (for UI components)
+- **Backend**: Firebase (Authentication, Firestore for database management)
+- **Data Visualization**: React Native Gifted Charts for rendering line charts
 
-To create a new React Native project using this template, run the following command:
+## Getting Started
 
-```bash
-npx react-native init MyNewProject --template https://github.com/friedice5467/RNCliFirebaseTemplate.git
-```
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-Replace `MyNewProject` with your desired project name.
+### Prerequisites
 
-### Set up Firebase
+What you need to install the software:
 
-After creating your project, you'll need to configure Firebase:
+- Node.js
+- npm or Yarn
+- React Native CLI
+- Android Studio or Xcode (for iOS)
 
-1. Navigate to your Firebase project in the Firebase Console.
-2. Go to Project Settings.
-3. Under the "General" tab, download the `google-services.json` for Android and place it in the `android/app` directory of your new project.
-4. For iOS, download the `GoogleService-Info.plist` and use Xcode to include it in your project.
+### Installation
 
-### Install Dependencies
+1. **Clone the repository**
 
-Navigate to your project directory and install the necessary dependencies:
+   ```bash
+   git clone https://github.com/yourusername/budgetplanner.git
+   ```
 
-```bash
-cd MyNewProject
-npm install
-```
+2. **Navigate to the project directory**
 
-### Running Your App
+   ```bash
+   cd budgetplanner
+   ```
 
-#### Android
+3. **Install dependencies**
 
-```bash
-npx react-native run-android
-```
+   ```bash
+   npm install
+   ```
 
-#### iOS (macOS only)
+4. **Start the application**
 
-```bash
-npx react-native run-ios
-```
+   For Android:
+   ```bash
+   npx react-native run-android
+   ```
+
+   For iOS:
+   ```bash
+   npx react-native run-ios
+   ```
+
+## Usage
+
+After launching the application, create an account to start setting up your monthly budget. Follow the on-screen instructions to allocate funds to Needs, Wants, and Savings. Use the analytics page to view your spending trends over time and adjust your budget accordingly.
 
 ## License
 
-This project is licensed under the MIT License 
+Distributed under the MIT License. See `LICENSE` for more information.

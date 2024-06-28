@@ -6,7 +6,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import BudgetService from '../services/BudgetService';
 import {UserContext} from '../contexts/AuthContext';
 import {AppUser} from '../models/appUser';
-import {LineChartSavings} from '../components/TestComponent';
+import {LineChartSavings} from '../components/LineChartSavings';
 import {lineDataItem} from 'react-native-gifted-charts';
 import {differenceInMonths, format} from 'date-fns';
 import { getItemDate } from '../util/helpers';
@@ -48,7 +48,7 @@ const Analysis = () => {
             item.excessMoney.need +
             item.excessMoney.want +
             item.excessMoney.save,
-          label: format(getItemDate(item.monthYear), 'MM-yyyy'),
+          label: format(getItemDate(item.monthYear), 'MM-yy'),
         }));
         setChartData(formattedData);
         console.log('Formatted data:', formattedData);

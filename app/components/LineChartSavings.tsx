@@ -9,8 +9,15 @@ type LineChartSavingsProps = {
 };
 
 export const LineChartSavings: React.FC<LineChartSavingsProps> = ({data}) => {
-
   const theme = useTheme();
+
+  if (data.length > 4) {
+    for (let i = 0; i < data.length; i++) {
+      if (i % 2 === 0) {
+        data[i].label = '';
+      }
+    }
+  }
   return (
     <View
       style={{
@@ -18,14 +25,14 @@ export const LineChartSavings: React.FC<LineChartSavingsProps> = ({data}) => {
         paddingLeft: 10,
       }}>
       <LineChart
-        isAnimated
-        animationDuration={1500}
-        areaChart
+        isAnimated={true}
+        areaChart={true}
+        animationDuration={2000}
         data={data}
-        width={300}
-        spacing={10}
+        width={350}
+        spacing={24}
         color={theme.colors.onBackground}
-        thickness={2}
+        thickness={1}
         startFillColor="rgba(20,105,81,0.3)"
         endFillColor="rgba(20,85,81,0.01)"
         startOpacity={0.9}
@@ -52,18 +59,17 @@ export const LineChartSavings: React.FC<LineChartSavingsProps> = ({data}) => {
             return (
               <View
                 style={{
-                  height: 90,
-                  width: 100,
-                  justifyContent: 'center',
+                  justifyContent: 'flex-start',
                 }}>
                 <Text
                   style={{
                     color: theme.colors.onBackground,
-                    fontSize: 14,
+                    fontSize: 12,
                     marginBottom: 6,
                     textAlign: 'center',
                   }}>
                   ${items[0].value.toFixed(2)}
+                  {`\n`+items[0].date}
                 </Text>
               </View>
             );

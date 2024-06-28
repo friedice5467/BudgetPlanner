@@ -35,7 +35,7 @@ What you need to install the software:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/budgetplanner.git
+   git clone https://github.com/friedice5467/BudgetPlanner.git
    ```
 
 2. **Navigate to the project directory**
@@ -65,6 +65,14 @@ What you need to install the software:
 ## Usage
 
 After launching the application, create an account to start setting up your monthly budget. Follow the on-screen instructions to allocate funds to Needs, Wants, and Savings. Use the analytics page to view your spending trends over time and adjust your budget accordingly.
+
+## Images
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/f62f8848-03c7-41ec-a36b-bc2153e5b404)
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/0718c71b-530c-42c2-9897-cdbdc21db100)
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/128fc74e-ff37-4942-a4cd-506305e7b20f)
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/92b2478e-9467-4211-a4b5-bb7a7c79572e)
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/53befea9-bcc1-4fcb-9676-cdc0203ae374)
+![image](https://github.com/friedice5467/BudgetPlanner/assets/58054670/7ee0ef9d-2377-4cb5-bb47-ed311809408f)
 
 ## License
 

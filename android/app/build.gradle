@@ -99,9 +99,9 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('your-keystore-name.keystore')
+            storeFile file('my-release-key.keystore')
             storePassword 'Pass123$'
-            keyAlias 'your-key-alias'
+            keyAlias 'my-key-alias'
             keyPassword 'Pass123$'
         }
     }

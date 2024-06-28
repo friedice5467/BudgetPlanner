@@ -1,6 +1,6 @@
 import firestore from '../../shims/firebase-firestore-web';
 import { Transaction } from '@firebase/firestore-types';
-import { BaseBudget, MonthlyBudget, Allocation, BaseAllocation } from '../models/budget/budget';
+import { BaseBudget, MonthlyBudget, Allocation, BaseAllocation, ExcessMoney } from '../models/budget/budget';
 
 class BudgetService {
   private budgetsCollection = firestore().collection('budgets');
@@ -160,6 +160,16 @@ class BudgetService {
     transaction.update(baseBudgetRef, { baseAllocations: baseBudget.baseAllocations });
 
     //this.propagateBaseAllocationUpdates(userId, updatedBaseAllocation, currentMonthYear, transaction);
+  }
+
+  public async getMonthlyBudgetsAllTime(budgetId: string): Promise<MonthlyBudget[]> {
+    const monthlyBudgets = await this.budgetsCollection
+      .doc(budgetId)
+      .collection('monthlyBudgets')
+      .orderBy('monthYear', 'desc')
+      .get();
+  
+    return monthlyBudgets.docs.map(doc => doc.data() as MonthlyBudget);
   }
 
   private async executeInTransaction(callback: (transaction: Transaction) => Promise<void>) {

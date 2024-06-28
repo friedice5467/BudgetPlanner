@@ -58,3 +58,8 @@ export function currencyFormatter(amount: string) : string {
     currency: 'USD',
   });
 }
+
+export function getItemDate(date: string): Date {
+  const [month, year] = date.split('-');
+  return new Date(`${year}-${month}-02`);
+}

@@ -11,11 +11,13 @@ export interface BaseBudget {
 export interface MonthlyBudget extends Omit<BaseBudget, 'baseAllocations'> {
   monthYear: string;  // Format: 'mm-YYYY'
   allocations: Allocation[];  // Monthly specific allocations
-  excessMoney: {
-    need: number;
-    want: number;
-    save: number;
-  };
+  excessMoney : ExcessMoney;
+}
+
+export interface ExcessMoney {
+  need: number;
+  want: number;
+  save: number;
 }
 
 export enum BudgetType {
